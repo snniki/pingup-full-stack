@@ -14,6 +14,10 @@ export const addUserStory = async (req, res) =>{
 
         // upload media to imagekit
         if(media_type === 'image' || media_type === 'video'){
+            if(!media){
+                return res.json({ success: false, message: 'Please upload a media file' });
+            }
+
             const fileBuffer = fs.readFileSync(media.path)
             const response = await imagekit.upload({
                 file: fileBuffer,
@@ -53,12 +57,14 @@ export const getStories = async (req, res) =>{
     try {
         const { userId } = req.auth();
         const user = await User.findById(userId)
+        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
         // User connections and followings 
         const userIds = [userId, ...user.connections, ...user.following]
 
         const stories = await Story.find({
-            user: {$in: userIds}
+            user: {$in: userIds},
+            createdAt: { $gte: last24Hours }
         }).populate('user').sort({ createdAt: -1 });
 
         res.json({ success: true, stories }); 
