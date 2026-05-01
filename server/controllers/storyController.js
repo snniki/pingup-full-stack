@@ -30,11 +30,15 @@ export const addUserStory = async (req, res) =>{
             background_color
         })
 
-        // schedule story deletion after 24 hours
-        await inngest.send({
-            name: 'app/story.delete',
-            data: { storyId: story._id }
-        })
+        // Story creation should succeed even if background scheduling fails.
+        try {
+            await inngest.send({
+                name: 'app/story.delete',
+                data: { storyId: story._id }
+            })
+        } catch (inngestError) {
+            console.log('Inngest story scheduling failed:', inngestError.message);
+        }
 
         res.json({success: true})
 

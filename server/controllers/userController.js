@@ -228,10 +228,14 @@ export const sendConnectionRequest = async (req, res) => {
                 to_user_id: id
             })
 
-            await inngest.send({
-                name: 'app/connection-request',
-                data: {connectionId: newConnection._id}
-            })
+            try {
+                await inngest.send({
+                    name: 'app/connection-request',
+                    data: {connectionId: newConnection._id}
+                })
+            } catch (inngestError) {
+                console.log('Inngest connection request scheduling failed:', inngestError.message);
+            }
 
             return res.json({success: true, message: 'Connection request sent successfully'})
         }else if(connection && connection.status === 'accepted'){
